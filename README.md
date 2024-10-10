@@ -7,12 +7,12 @@ Simple Toolsets for HPC development. Depends on FTXUI, pybind11.
 ## install
 for python
 ~~~shell
-git clone 
+git clone git@github.com:HeduAiDev/TuiToolsetsForHpc.git
 pip install -e .
 ~~~
 for C++
 ~~~shell
-git clone 
+git clone git@github.com:HeduAiDev/TuiToolsetsForHpc.git
 cmake -S . -B build
 cmake --build build --config Release -j8
 cmake --install build --config Release --component CPPInterface --prefix <your_prefix>
