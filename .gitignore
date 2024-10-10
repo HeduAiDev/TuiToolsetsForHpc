@@ -1,9 +1,9 @@
-build
+build*
 __pycache__
 *.py[cod]
 .vscode
 3rd/*
 *.egg-info
-.dll
-.lib
-.so
+*.dll
+*.lib
+*.so
