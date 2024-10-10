@@ -1,0 +1,6 @@
+[submodule "3rd/ftxui"]
+	path = 3rd/ftxui
+	url = https://github.com/ArthurSonzogni/ftxui
+[submodule "3rd/pybind11"]
+	path = 3rd/pybind11
+	url = https://github.com/pybind/pybind11.git
