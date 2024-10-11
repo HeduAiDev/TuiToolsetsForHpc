@@ -55,7 +55,7 @@ namespace tui {
                     }
                 }
             }
-            for (int i = this -> buffer_x_(); i < this ->buffer_x_() + this -> buffer_cols_; i ++) {
+            for (int i = this -> buffer_x_(); i < std::min(this -> cols, this ->buffer_x_() + this -> buffer_cols_); i ++) {
                 Color font_color, bg_color;
                 ::std::tie(font_color, bg_color) = color_map.count(i) ? color_map[i] : ::std::pair<Color, Color>(Color::Gold3Bis, Color::Grey3);
                 col_labels_arr.push_back(text(::std::to_string(i)) | center | frame | size(WIDTH, EQUAL, this -> text_width) | color(font_color) | bgcolor(bg_color));
@@ -76,12 +76,12 @@ namespace tui {
                 }
             }
             Color font_color, bg_color;
-            for (int i = this -> buffer_y_(); i < this ->buffer_y_() + this -> buffer_rows_ - 1; i ++) {
+            for (int i = this -> buffer_y_(); i < std::min(this ->rows - 1, this ->buffer_y_() + this -> buffer_rows_ - 1); i ++) {
                 ::std::tie(font_color, bg_color) = color_map.count(i) ? color_map[i] : ::std::pair<Color, Color>(Color::Gold3Bis, Color::Grey3);
                 row_labels_arr.push_back({text(::std::to_string(i)) | size(HEIGHT, EQUAL, 1) | center | color(font_color) | bgcolor(bg_color)});
                 row_labels_arr.push_back({separator() | color(Color::Gold3) | bgcolor(Color::Grey3)});
             }
-            int i = this ->buffer_y_() + this -> buffer_rows_ - 1;
+            int i = std::min(this -> rows - 1, this ->buffer_y_() + this -> buffer_rows_ - 1);
             ::std::tie(font_color, bg_color) = color_map.count(i) ? color_map[i] : ::std::pair<Color, Color>(Color::Gold3Bis, Color::Grey3);
             row_labels_arr.push_back({text(::std::to_string(i)) | size(HEIGHT, EQUAL, 1) | center | color(font_color) | bgcolor(bg_color)});
             return gridbox(row_labels_arr);
@@ -132,10 +132,10 @@ namespace tui {
         Element  MatrixFrameBase<T>::getMatrix() {
             this -> updateBuffer();
             ::std::vector<Elements> _rows_arr;
-            for (int i = this -> buffer_y_(); i < this -> buffer_y_() + this -> buffer_rows_; i++) {
+            for (int i = this -> buffer_y_(); i < std::min(this -> rows, this -> buffer_y_() + this -> buffer_rows_); i++) {
                 ::std::vector<Element> _cols_arr;
                 ::std::vector<Element> _separator_arr;
-                for (int j = this -> buffer_x_(); j < this -> buffer_x_() + this -> buffer_cols_; j++) {
+                for (int j = this -> buffer_x_(); j < std::min(this -> cols, this -> buffer_x_() + this -> buffer_cols_); j++) {
                     T val = this -> ptr[i * this -> cols + j];
                     // │ele│
                     // ┼───┼
@@ -159,7 +159,7 @@ namespace tui {
                     _separator_arr.push_back(separator_cross);
                 }
                 _rows_arr.push_back(_cols_arr);
-                if (i != this -> buffer_y_() + this -> buffer_rows_ - 1) {
+                if (i != std::min(this -> rows -1, this -> buffer_y_() + this -> buffer_rows_ - 1)) {
                     _rows_arr.push_back(_separator_arr);
                 }
             }
@@ -177,14 +177,14 @@ namespace tui {
         float MatrixFrameBase<T>::computeRelativeFocusX() {
              
             float relative_bias = std::max((this -> focus_x() * this -> cols) - this -> buffer_x_(), 0.f);
-            return relative_bias / (float)this -> buffer_cols_;
+            return relative_bias / (float)std::min(this -> cols, this -> buffer_cols_);
         }
 
         template<typename T>
         float MatrixFrameBase<T>::computeRelativeFocusY() {
              
             float relative_bias = std::max((this -> focus_y() * this -> rows) - this -> buffer_y_(), 0.f);
-            return relative_bias / (float)this -> buffer_rows_;
+            return relative_bias / (float)std::min(this -> rows, this -> buffer_rows_);
         }
 
         template<typename T>
