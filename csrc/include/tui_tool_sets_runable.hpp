@@ -30,11 +30,11 @@ namespace tui
         // ──┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───█ <-dragable scroll bar
 
         // print matrix in tui that interacts with the mouse
-        void print_matrix(float* ptr, int rows, int cols, int screen_size_x = 50, int screen_size_y = 15);
-        void print_matrix(double* ptr, int rows, int cols, int screen_size_x = 50, int screen_size_y = 15);
-        void print_matrix(int* ptr, int rows, int cols, int screen_size_x = 50, int screen_size_y = 15);
+        void print_matrix(float* ptr, int rows, int cols, int screen_size_x = 50, int screen_size_y = 15, int text_width = 5);
+        void print_matrix(double* ptr, int rows, int cols, int screen_size_x = 50, int screen_size_y = 15, int text_width = 8);
+        void print_matrix(int* ptr, int rows, int cols, int screen_size_x = 50, int screen_size_y = 15, int text_width = 5);
         #ifdef __CUDA__
-        void print_matrix(half* ptr, int rows, int cols, int screen_size_x = 50, int screen_size_y = 15);
+        void print_matrix(half* ptr, int rows, int cols, int screen_size_x = 50, int screen_size_y = 15, int text_width = 5);
         #endif
 
          // static view but you can setting the offset of x and y by specify a center point 

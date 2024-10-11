@@ -9,8 +9,9 @@ namespace tui {
         using namespace tui::component;
 
         template <typename T>
-        void print_matrix_(T *ptr, int rows, int cols, int screen_size_x, int screen_size_y) {
+        void print_matrix_(T *ptr, int rows, int cols, int screen_size_x, int screen_size_y, int text_width = 5) {
             ::tui::component::MatrixFrameOptions<T> options;
+            options.text_width = text_width;
             Component frame = ::tui::component::MatrixFrame(ptr, rows, cols, options);
             Component main_renderer =  Renderer(frame,[&] {
                 auto terminal = Terminal::Size();
@@ -27,21 +28,21 @@ namespace tui {
             screen.Loop(main_renderer);
         }
         
-        void print_matrix(float *ptr, int rows, int cols, int screen_size_x, int screen_size_y) {
-            print_matrix_<float>(ptr, rows, cols, screen_size_x, screen_size_y);
+        void print_matrix(float *ptr, int rows, int cols, int screen_size_x, int screen_size_y, int text_width) {
+            print_matrix_<float>(ptr, rows, cols, screen_size_x, screen_size_y, text_width);
         }
 
-        void print_matrix(double *ptr, int rows, int cols, int screen_size_x, int screen_size_y) {
-            print_matrix_<double>(ptr, rows, cols, screen_size_x, screen_size_y);
+        void print_matrix(double *ptr, int rows, int cols, int screen_size_x, int screen_size_y, int text_width) {
+            print_matrix_<double>(ptr, rows, cols, screen_size_x, screen_size_y, text_width);
         }
 
-        void print_matrix(int *ptr, int rows, int cols, int screen_size_x, int screen_size_y) {
-            print_matrix_<int>(ptr, rows, cols, screen_size_x, screen_size_y);
+        void print_matrix(int *ptr, int rows, int cols, int screen_size_x, int screen_size_y, int text_width) {
+            print_matrix_<int>(ptr, rows, cols, screen_size_x, screen_size_y, text_width);
         }
 
         #ifdef __CUDA__
-        void print_matrix(half *ptr, int rows, int cols, int screen_size_x, int screen_size_y) {
-            print_matrix_<half>(ptr, rows, cols, screen_size_x, screen_size_y);
+        void print_matrix(half *ptr, int rows, int cols, int screen_size_x, int screen_size_y, int text_width) {
+            print_matrix_<half>(ptr, rows, cols, screen_size_x, screen_size_y, text_width);
         }
         #endif
 

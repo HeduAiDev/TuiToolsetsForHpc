@@ -189,6 +189,7 @@ namespace tui {
             ::std::vector<MatrixFrameOptionsLabelMark> label_marks;
             Ref<float> focus_x = new float(0.5f);
             Ref<float> focus_y = new float(0.5f); 
+            int text_width = 5;
             MatrixFrameOptions() = default;
             MatrixFrameOptions(const MatrixFrameOptions& other)
             : ptr(other.ptr), rows(other.rows), cols(other.cols), element_style(other.element_style), focus_x(other.focus_x), focus_y(other.focus_y), label_marks(std::move(other.label_marks)), element_style_stack(std::move(other.element_style_stack)) {};
@@ -204,6 +205,9 @@ namespace tui {
                 Element getMatrix();
                 float& getFocusX();
                 float& getFocusY();
+                void updateBuffer();
+                float computeRelativeFocusX();
+                float computeRelativeFocusY();
                 friend tui::component::MatrixFrameOptionsCommonElementStyle::ElementStyle operator|( tui::component::MatrixFrameOptionsCommonElementStyle::ElementStyle lhs, tui::component::MatrixFrameOptionsCommonElementStyle::ElementStyle rhs);
             private:
                 Element col_labels_;
@@ -211,7 +215,10 @@ namespace tui {
                 Component slider_x_;
                 Component slider_y_;
                 Element matrix_;
-                int text_width_ = 3;
+                int buffer_cols_ = 100;
+                int buffer_rows_ = 100;
+                Ref<int> buffer_x_ = new int(0);
+                Ref<int> buffer_y_ = new int(0);
                 
         };
 

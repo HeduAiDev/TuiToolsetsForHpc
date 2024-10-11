@@ -6,13 +6,13 @@ namespace tui {
         
         template<typename T>
         MatrixFrameBase<T>::MatrixFrameBase(MatrixFrameOptions<T>& options) : MatrixFrameOptions<T>(options) {
-            col_labels_ = getColLabels();
-            row_labels_ = getRowLabels();
-            SliderOption<float> slider_x_option = {this -> focus_x, 0.0f, 1.0f, 0.01f, Direction::Right, Color::White, Color::Grey50};
-            SliderOption<float> slider_y_option = {this -> focus_y, 0.0f, 1.0f, 0.01f, Direction::Down, Color::White, Color::Grey50};
+            // col_labels_ = getColLabels();
+            // row_labels_ = getRowLabels();
+            SliderOption<float> slider_x_option = {this -> focus_x, 0.0f, 1.0f, std::max(1/(float)this -> rows, 0.000001f), Direction::Right, Color::White, Color::Grey50};
+            SliderOption<float> slider_y_option = {this -> focus_y, 0.0f, 1.0f, std::max(1/(float)this -> cols, 0.000001f), Direction::Down, Color::White, Color::Grey50};
             slider_x_ = Slider(slider_x_option) | bgcolor(Color::Grey23);
             slider_y_ = Slider(slider_y_option) | bgcolor(Color::Grey23);
-            matrix_ = getMatrix();
+            // matrix_ = getMatrix();
             Add(Container::Vertical({
                 slider_x_,
                 slider_y_,
@@ -22,22 +22,23 @@ namespace tui {
 
         template<typename T>
         Element MatrixFrameBase<T>::Render() {
+            this -> updateBuffer();
             return hbox({
                 hbox({
                     vbox({
                         slider_x_ -> Render() | size(HEIGHT, EQUAL, 1),
                         gridbox({
-                            {col_labels_ | focusPositionRelative(this -> focus_x(), 0) | xframe },
-                            {matrix_ | focusPositionRelative(this -> focus_x(), this -> focus_y()) | frame },
+                            {getColLabels() | focusPositionRelative(this -> computeRelativeFocusX(), 0) | xframe },
+                            {getMatrix() | focusPositionRelative(this -> computeRelativeFocusX(), this -> computeRelativeFocusY()) | frame },
                         }) ,
                     }) | xflex, 
                     vbox({
                         text(" ") | size(HEIGHT, EQUAL, 2),
                         hbox({
-                            row_labels_ | focusPositionRelative(0, this -> focus_y()) | yframe,
+                            getRowLabels() | focusPositionRelative(0, this -> computeRelativeFocusY()) | yframe,
                             slider_y_ -> Render()
                         }) | yflex,
-                    }) | size(WIDTH, EQUAL, 4)
+                    }) | size(WIDTH, GREATER_THAN, 4)
                 }),
                 hbox({text(" ")}) | xflex
             });
@@ -54,10 +55,10 @@ namespace tui {
                     }
                 }
             }
-            for (int i = 0; i < this -> cols; i ++) {
+            for (int i = this -> buffer_x_(); i < this ->buffer_x_() + this -> buffer_cols_; i ++) {
                 Color font_color, bg_color;
                 ::std::tie(font_color, bg_color) = color_map.count(i) ? color_map[i] : ::std::pair<Color, Color>(Color::Gold3Bis, Color::Grey3);
-                col_labels_arr.push_back(text(::std::to_string(i)) | center | frame | size(WIDTH, EQUAL, text_width_) | color(font_color) | bgcolor(bg_color));
+                col_labels_arr.push_back(text(::std::to_string(i)) | center | frame | size(WIDTH, EQUAL, this -> text_width) | color(font_color) | bgcolor(bg_color));
                 col_labels_arr.push_back(separator() | color(Color::Gold3) | bgcolor(Color::Grey3));
             }
             return gridbox({col_labels_arr});
@@ -75,67 +76,30 @@ namespace tui {
                 }
             }
             Color font_color, bg_color;
-            for (int i = 0; i < this -> rows - 1; i ++) {
+            for (int i = this -> buffer_y_(); i < this ->buffer_y_() + this -> buffer_rows_ - 1; i ++) {
                 ::std::tie(font_color, bg_color) = color_map.count(i) ? color_map[i] : ::std::pair<Color, Color>(Color::Gold3Bis, Color::Grey3);
                 row_labels_arr.push_back({text(::std::to_string(i)) | size(HEIGHT, EQUAL, 1) | center | color(font_color) | bgcolor(bg_color)});
                 row_labels_arr.push_back({separator() | color(Color::Gold3) | bgcolor(Color::Grey3)});
             }
-            ::std::tie(font_color, bg_color) = color_map.count(this -> rows - 1) ? color_map[this -> rows - 1] : ::std::pair<Color, Color>(Color::Gold3Bis, Color::Grey3);
-            row_labels_arr.push_back({text(::std::to_string(this -> rows - 1)) | size(HEIGHT, EQUAL, 1) | center | color(font_color) | bgcolor(bg_color)});
+            int i = this ->buffer_y_() + this -> buffer_rows_ - 1;
+            ::std::tie(font_color, bg_color) = color_map.count(i) ? color_map[i] : ::std::pair<Color, Color>(Color::Gold3Bis, Color::Grey3);
+            row_labels_arr.push_back({text(::std::to_string(i)) | size(HEIGHT, EQUAL, 1) | center | color(font_color) | bgcolor(bg_color)});
             return gridbox(row_labels_arr);
         }
 
         #ifdef __CUDA__
         template <>
         Element  MatrixFrameBase<half>::getMatrix() {
+            this -> updateBuffer();
             ::std::vector<Elements> _rows_arr;
-            for (int i = 0; i < this -> rows; i++) {
+            for (int i = this -> buffer_y_(); i < this -> buffer_y_() + this -> buffer_rows_; i++) {
                 ::std::vector<Element> _cols_arr;
                 ::std::vector<Element> _separator_arr;
-                for (int j = 0; j < this -> cols; j++) {
+                for (int j = this -> buffer_x_(); j < this -> buffer_x_() + this -> buffer_cols_; j++) {
                     float val = __half2float(this -> ptr[i * this -> cols + j]);
                     // │ele│
                     // ┼───┼
-                    Element ele = text(std::to_string(val)) | center | frame | size(WIDTH, EQUAL, 3) | size(HEIGHT, EQUAL, 1); 
-                    // |
-                    Element separator_right = separator();
-                    // ───
-                    Element separator_bottom = separator();
-                    // ┼
-                    Element separator_cross = separator();
-                    if (this -> element_style != nullptr) {
-                        this -> element_style(ele, j, i, separator_right, separator_bottom, separator_cross);
-                    }  else if (this -> element_style_stack.size() != 0) {
-                        for (auto &ele_style : this -> element_style_stack) {
-                            ele_style(ele, j, i, separator_right, separator_bottom, separator_cross);
-                        }
-                    }
-                    _cols_arr.push_back(ele);
-                    _cols_arr.push_back(separator_right);
-                    _separator_arr.push_back(separator_bottom);
-                    _separator_arr.push_back(separator_cross);
-                }
-                _rows_arr.push_back(_cols_arr);
-                if (i != this -> rows - 1) {
-                    _rows_arr.push_back(_separator_arr);
-                }
-            }
-            return gridbox(_rows_arr);
-        }
-        #endif        
-
-
-        template <typename T>
-        Element  MatrixFrameBase<T>::getMatrix() {
-            ::std::vector<Elements> _rows_arr;
-            for (int i = 0; i < this -> rows; i++) {
-                ::std::vector<Element> _cols_arr;
-                ::std::vector<Element> _separator_arr;
-                for (int j = 0; j < this -> cols; j++) {
-                    T val = this -> ptr[i * this -> cols + j];
-                    // │ele│
-                    // ┼───┼
-                    Element ele = text(std::to_string(val)) | center | frame | size(WIDTH, EQUAL, 3) | size(HEIGHT, EQUAL, 1); 
+                    Element ele = text(std::to_string(val)) | center | frame | size(WIDTH, EQUAL, this -> text_width) | size(HEIGHT, EQUAL, 1); 
                     // |
                     Element separator_right = separator();
                     // ───
@@ -155,11 +119,72 @@ namespace tui {
                     _separator_arr.push_back(separator_cross);
                 }
                 _rows_arr.push_back(_cols_arr);
-                if (i != this -> rows - 1) {
+                if (i != this -> buffer_y_() + this -> buffer_rows_ - 1) {
                     _rows_arr.push_back(_separator_arr);
                 }
             }
             return gridbox(_rows_arr);
+        }
+        #endif        
+
+
+        template <typename T>
+        Element  MatrixFrameBase<T>::getMatrix() {
+            this -> updateBuffer();
+            ::std::vector<Elements> _rows_arr;
+            for (int i = this -> buffer_y_(); i < this -> buffer_y_() + this -> buffer_rows_; i++) {
+                ::std::vector<Element> _cols_arr;
+                ::std::vector<Element> _separator_arr;
+                for (int j = this -> buffer_x_(); j < this -> buffer_x_() + this -> buffer_cols_; j++) {
+                    T val = this -> ptr[i * this -> cols + j];
+                    // │ele│
+                    // ┼───┼
+                    Element ele = text(std::to_string(val)) | center | frame | size(WIDTH, EQUAL, this -> text_width) | size(HEIGHT, EQUAL, 1); 
+                    // |
+                    Element separator_right = separator();
+                    // ───
+                    Element separator_bottom = separator();
+                    // ┼
+                    Element separator_cross = separator();
+                    if (this -> element_style != nullptr) {
+                        this -> element_style(ele, j, i, separator_right, separator_bottom, separator_cross);
+                    } else if (this -> element_style_stack.size() != 0) {
+                        for (auto &ele_style : this -> element_style_stack) {
+                            ele_style(ele, j, i, separator_right, separator_bottom, separator_cross);
+                        }
+                    }
+                    _cols_arr.push_back(ele);
+                    _cols_arr.push_back(separator_right);
+                    _separator_arr.push_back(separator_bottom);
+                    _separator_arr.push_back(separator_cross);
+                }
+                _rows_arr.push_back(_cols_arr);
+                if (i != this -> buffer_y_() + this -> buffer_rows_ - 1) {
+                    _rows_arr.push_back(_separator_arr);
+                }
+            }
+            return gridbox(_rows_arr);
+        }
+
+        template<typename T>
+        void MatrixFrameBase<T>::updateBuffer() {
+            // buffer_x_ is X axis starting point of the buffer
+            this -> buffer_x_ = this -> focus_x() * std::max(this -> cols - this -> buffer_cols_, 0);
+            this -> buffer_y_ = this -> focus_y() * std::max(this -> rows - this -> buffer_rows_, 0);
+        }
+
+        template<typename T>
+        float MatrixFrameBase<T>::computeRelativeFocusX() {
+             
+            float relative_bias = std::max((this -> focus_x() * this -> cols) - this -> buffer_x_(), 0.f);
+            return relative_bias / (float)this -> buffer_cols_;
+        }
+
+        template<typename T>
+        float MatrixFrameBase<T>::computeRelativeFocusY() {
+             
+            float relative_bias = std::max((this -> focus_y() * this -> rows) - this -> buffer_y_(), 0.f);
+            return relative_bias / (float)this -> buffer_rows_;
         }
 
         template<typename T>

@@ -1,7 +1,13 @@
 Simple Toolsets for HPC development. Depends on FTXUI, pybind11.
+## Features
+- support for C++ and Python
+- support for very large matrix over 10000 * 10000
+
 
 
 ## Preview
+
+![demo of print large matrix](./assets/largematrix.gif)
 
 ![demo of diff function](./assets/diff.gif)
 
@@ -24,6 +30,18 @@ cmake --install build --config Release --component CPPInterface --prefix <your_p
 ~~~
 
 ## usage
+| Keybinding | description         |
+| ---------- | ------------------- |
+| `Esc`      | Exit                |
+| `Enter`    | Exit                |
+| j          | scroll down slowly  |
+| k          | scroll up slowly    |
+| h          | scroll left slowly  |
+| l          | scroll right slowly |
+
+
+
+
 Python
 ~~~shell
 >>> import tui_toolsets as tui
