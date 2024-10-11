@@ -1,5 +1,8 @@
 Simple Toolsets for HPC development. Depends on FTXUI, pybind11.
 
+
+## Preview
+
 ![demo of diff function](./assets/diff.gif)
 
 ![demo of print_matrx function](./assets/printmatrx.gif)
@@ -8,11 +11,13 @@ Simple Toolsets for HPC development. Depends on FTXUI, pybind11.
 for python
 ~~~shell
 git clone git@github.com:HeduAiDev/TuiToolsetsForHpc.git
+cd TuiToolsetsForHpc
 pip install -e .
 ~~~
 for C++
 ~~~shell
 git clone git@github.com:HeduAiDev/TuiToolsetsForHpc.git
+cd TuiToolsetsForHpc
 cmake -S . -B build
 cmake --build build --config Release -j8
 cmake --install build --config Release --component CPPInterface --prefix <your_prefix>
