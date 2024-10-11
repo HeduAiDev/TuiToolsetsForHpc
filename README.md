@@ -16,13 +16,13 @@ Simple Toolsets for HPC development. Depends on FTXUI, pybind11.
 ## install
 for python
 ~~~shell
-git clone git@github.com:HeduAiDev/TuiToolsetsForHpc.git
+git clone  --recursive git@github.com:HeduAiDev/TuiToolsetsForHpc.git
 cd TuiToolsetsForHpc
 pip install -e .
 ~~~
 for C++
 ~~~shell
-git clone git@github.com:HeduAiDev/TuiToolsetsForHpc.git
+git clone  --recursive git@github.com:HeduAiDev/TuiToolsetsForHpc.git
 cd TuiToolsetsForHpc
 cmake -S . -B build
 cmake --build build --config Release -j8

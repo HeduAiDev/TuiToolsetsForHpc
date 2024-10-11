@@ -6,8 +6,9 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "tui_toolsets"
 version = "0.0.1"
-description="A minimal example package (with pybind11)"
+description="Simple Toolsets for HPC development."
 readme = "README.md"
+license = { file = "LICENSE" }
 authors = [
   { name = "HeduAiDev", email = "1297416662@qq.com" },
 ]
