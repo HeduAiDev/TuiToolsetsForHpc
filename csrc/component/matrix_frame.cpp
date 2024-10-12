@@ -257,8 +257,9 @@ namespace tui {
                     Element& separator_bottom               = utils::row_major_vect_get(elements, x, y + 1);
                     Element& separator_cross_top_right      = utils::row_major_vect_get(elements, x + 1, y - 1);
                     Element& separator_cross_bottom_right   = utils::row_major_vect_get(elements, x + 1, y + 1);
-                    // light = 70 / (70 + x)
-                    float light = std::max( 0.3f , 70.0f / (70.0f + std::abs(cur_col_id - tar_col_id)));
+                    // light = factor / (factor + x)
+                    float factor = 10 + 60 * std::min(1.0, cols / 1000.0);
+                    float light = std::max( 0.3f , factor / (factor + std::abs(cur_col_id - tar_col_id)));
                     if (separator_top) separator_top |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
                     if (separator_bottom) separator_bottom |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
                     if (separator_cross_bottom_right) separator_cross_bottom_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
@@ -273,7 +274,9 @@ namespace tui {
                     Element& separator_left                 = utils::row_major_vect_get(elements, x - 1, y);
                     Element& separator_cross_bottom_left    = utils::row_major_vect_get(elements, x - 1, y + 1);
                     Element& separator_cross_bottom_right   = utils::row_major_vect_get(elements, x + 1, y + 1);
-                    float light = std::max( 0.35f , 70.0f / (70.0f + std::abs(cur_row_id - tar_row_id)));
+                    // light = factor / (factor + x)
+                    float factor = 10 + 60 * std::min(1.0, rows / 1000.0);
+                    float light = std::max( 0.35f , factor / (factor + std::abs(cur_row_id - tar_row_id)));
                     if (separator_right) separator_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
                     if (separator_left) separator_left |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
                     if (separator_cross_bottom_right) separator_cross_bottom_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
