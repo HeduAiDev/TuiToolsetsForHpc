@@ -19,12 +19,13 @@ namespace utils {
     using pair_map = std::unordered_map<std::pair<int, int>, T, pair_hash>;
     template <typename T>
     using label_map = std::unordered_map<int, T>;
+
     template <typename T>
-    T& row_major_vect_get(std::vector<vector<T>>& vec, int x, int y, T default = nullptr) {
+    T* row_major_vect_get(std::vector<vector<T>>& vec, int x, int y) {
         if (y < 0 || y >= vec.size() || x < 0 || x >= vec[y].size()) {
-            return default;
+            return nullptr;
         }
-        return vec[y][x];
+        return &vec[y][x];
     }
 
 

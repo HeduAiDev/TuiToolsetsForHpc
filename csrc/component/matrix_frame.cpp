@@ -224,25 +224,25 @@ namespace tui {
         ::std::function<ElementStyle(int row_id, int col_id, Color color)>
         CommonElementStyle::mark_point = [](int row_id, int col_id, Color color) -> ElementStyle {
             return [row_id, col_id, color](int x, int y, std::vector<Elements> &elements) {
-                Element& ele                            = utils::row_major_vect_get(elements, x, y);
-                Element& separator_right                = utils::row_major_vect_get(elements, x + 1, y);
-                Element& separator_left                 = utils::row_major_vect_get(elements, x - 1, y);
-                Element& separator_top                  = utils::row_major_vect_get(elements, x, y - 1);
-                Element& separator_bottom               = utils::row_major_vect_get(elements, x, y + 1);
-                Element& separator_cross_top_right      = utils::row_major_vect_get(elements, x + 1, y - 1);
-                Element& separator_cross_bottom_right   = utils::row_major_vect_get(elements, x + 1, y + 1);
-                Element& separator_cross_top_left       = utils::row_major_vect_get(elements, x - 1, y - 1);
-                Element& separator_cross_bottom_left    = utils::row_major_vect_get(elements, x - 1, y + 1);
+                Element* ele                            = utils::row_major_vect_get(elements, x, y);
+                Element* separator_right                = utils::row_major_vect_get(elements, x + 1, y);
+                Element* separator_left                 = utils::row_major_vect_get(elements, x - 1, y);
+                Element* separator_top                  = utils::row_major_vect_get(elements, x, y - 1);
+                Element* separator_bottom               = utils::row_major_vect_get(elements, x, y + 1);
+                Element* separator_cross_top_right      = utils::row_major_vect_get(elements, x + 1, y - 1);
+                Element* separator_cross_bottom_right   = utils::row_major_vect_get(elements, x + 1, y + 1);
+                Element* separator_cross_top_left       = utils::row_major_vect_get(elements, x - 1, y - 1);
+                Element* separator_cross_bottom_left    = utils::row_major_vect_get(elements, x - 1, y + 1);
 
-                if (ele) ele |= ::ftxui::bgcolor(color);
-                if (separator_right) separator_right |= ::ftxui::bgcolor(color);
-                if (separator_left) separator_left |= ::ftxui::bgcolor(color);
-                if (separator_top) separator_top |= ::ftxui::bgcolor(color);
-                if (separator_bottom) separator_bottom |= ::ftxui::bgcolor(color);
-                if (separator_cross_top_right) separator_cross_top_right |= ::ftxui::bgcolor(color);
-                if (separator_cross_bottom_right) separator_cross_bottom_right |= ::ftxui::bgcolor(color);
-                if (separator_cross_top_left) separator_cross_top_left |= ::ftxui::bgcolor(color);
-                if (separator_cross_bottom_left) separator_cross_bottom_left |= ::ftxui::bgcolor(color);
+                if (ele) *ele |= ::ftxui::bgcolor(color);
+                if (separator_right) *separator_right |= ::ftxui::bgcolor(color);
+                if (separator_left) *separator_left |= ::ftxui::bgcolor(color);
+                if (separator_top) *separator_top |= ::ftxui::bgcolor(color);
+                if (separator_bottom) *separator_bottom |= ::ftxui::bgcolor(color);
+                if (separator_cross_top_right) *separator_cross_top_right |= ::ftxui::bgcolor(color);
+                if (separator_cross_bottom_right) *separator_cross_bottom_right |= ::ftxui::bgcolor(color);
+                if (separator_cross_top_left) *separator_cross_top_left |= ::ftxui::bgcolor(color);
+                if (separator_cross_bottom_left) *separator_cross_bottom_left |= ::ftxui::bgcolor(color);
 
             };
         };
@@ -253,34 +253,34 @@ namespace tui {
             Color point_color = Color::HSV(5, 222, 227);
             std::function<ElementStyle(int)> row_trace = [trace_color, col_id, cols](int cur_col_id) -> ElementStyle {
                 return [trace_color, tar_col_id = col_id, cur_col_id, cols] (int x, int y, std::vector<Elements> &elements) {
-                    Element& separator_top                  = utils::row_major_vect_get(elements, x, y - 1);
-                    Element& separator_bottom               = utils::row_major_vect_get(elements, x, y + 1);
-                    Element& separator_cross_top_right      = utils::row_major_vect_get(elements, x + 1, y - 1);
-                    Element& separator_cross_bottom_right   = utils::row_major_vect_get(elements, x + 1, y + 1);
+                    Element* separator_top                  = utils::row_major_vect_get(elements, x, y - 1);
+                    Element* separator_bottom               = utils::row_major_vect_get(elements, x, y + 1);
+                    Element* separator_cross_top_right      = utils::row_major_vect_get(elements, x + 1, y - 1);
+                    Element* separator_cross_bottom_right   = utils::row_major_vect_get(elements, x + 1, y + 1);
                     // light = factor / (factor + x)
                     float factor = 10 + 60 * std::min(1.0, cols / 1000.0);
                     float light = std::max( 0.3f , factor / (factor + std::abs(cur_col_id - tar_col_id)));
-                    if (separator_top) separator_top |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
-                    if (separator_bottom) separator_bottom |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
-                    if (separator_cross_bottom_right) separator_cross_bottom_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
-                    if (separator_cross_top_right) separator_cross_top_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
+                    if (separator_top) *separator_top |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
+                    if (separator_bottom) *separator_bottom |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
+                    if (separator_cross_bottom_right) *separator_cross_bottom_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
+                    if (separator_cross_top_right) *separator_cross_top_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
                 };
             };
             
 
             std::function<ElementStyle(int)> col_trace = [trace_color, row_id, rows](int cur_row_id) -> ElementStyle {
                 return [trace_color, tar_row_id = row_id, cur_row_id, rows](int x, int y, std::vector<Elements> &elements) {
-                    Element& separator_right                = utils::row_major_vect_get(elements, x + 1, y);
-                    Element& separator_left                 = utils::row_major_vect_get(elements, x - 1, y);
-                    Element& separator_cross_bottom_left    = utils::row_major_vect_get(elements, x - 1, y + 1);
-                    Element& separator_cross_bottom_right   = utils::row_major_vect_get(elements, x + 1, y + 1);
+                    Element* separator_right                = utils::row_major_vect_get(elements, x + 1, y);
+                    Element* separator_left                 = utils::row_major_vect_get(elements, x - 1, y);
+                    Element* separator_cross_bottom_left    = utils::row_major_vect_get(elements, x - 1, y + 1);
+                    Element* separator_cross_bottom_right   = utils::row_major_vect_get(elements, x + 1, y + 1);
                     // light = factor / (factor + x)
                     float factor = 10 + 60 * std::min(1.0, rows / 1000.0);
                     float light = std::max( 0.35f , factor / (factor + std::abs(cur_row_id - tar_row_id)));
-                    if (separator_right) separator_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
-                    if (separator_left) separator_left |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
-                    if (separator_cross_bottom_right) separator_cross_bottom_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
-                    if (separator_cross_bottom_left) separator_cross_bottom_left |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
+                    if (separator_right) *separator_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
+                    if (separator_left) *separator_left |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
+                    if (separator_cross_bottom_right) *separator_cross_bottom_right |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
+                    if (separator_cross_bottom_left) *separator_cross_bottom_left |= ::ftxui::bgcolor(Color::HSV(5, 222, 227 * light));
                 };
             };
             for (int row = 0; row < rows; row++) {
@@ -298,25 +298,25 @@ namespace tui {
                 }
             }
             return [row_id, col_id, trace_color, point_color](int x, int y, std::vector<Elements> &elements) {
-                Element& ele                            = utils::row_major_vect_get(elements, x, y);
-                Element& separator_right                = utils::row_major_vect_get(elements, x + 1, y);
-                Element& separator_left                 = utils::row_major_vect_get(elements, x - 1, y);
-                Element& separator_top                  = utils::row_major_vect_get(elements, x, y - 1);
-                Element& separator_bottom               = utils::row_major_vect_get(elements, x, y + 1);
-                Element& separator_cross_top_right      = utils::row_major_vect_get(elements, x + 1, y - 1);
-                Element& separator_cross_bottom_right   = utils::row_major_vect_get(elements, x + 1, y + 1);
-                Element& separator_cross_top_left       = utils::row_major_vect_get(elements, x - 1, y - 1);
-                Element& separator_cross_bottom_left    = utils::row_major_vect_get(elements, x - 1, y + 1);
+                Element* ele                            = utils::row_major_vect_get(elements, x, y);
+                Element* separator_right                = utils::row_major_vect_get(elements, x + 1, y);
+                Element* separator_left                 = utils::row_major_vect_get(elements, x - 1, y);
+                Element* separator_top                  = utils::row_major_vect_get(elements, x, y - 1);
+                Element* separator_bottom               = utils::row_major_vect_get(elements, x, y + 1);
+                Element* separator_cross_top_right      = utils::row_major_vect_get(elements, x + 1, y - 1);
+                Element* separator_cross_bottom_right   = utils::row_major_vect_get(elements, x + 1, y + 1);
+                Element* separator_cross_top_left       = utils::row_major_vect_get(elements, x - 1, y - 1);
+                Element* separator_cross_bottom_left    = utils::row_major_vect_get(elements, x - 1, y + 1);
 
-                if (ele) ele |= ::ftxui::bgcolor(point_color);
-                if (separator_right) separator_right |= ::ftxui::bgcolor(point_color);
-                if (separator_left) separator_left |= ::ftxui::bgcolor(point_color);
-                if (separator_top) separator_top |= ::ftxui::bgcolor(point_color);
-                if (separator_bottom) separator_bottom |= ::ftxui::bgcolor(point_color);
-                if (separator_cross_top_right) separator_cross_top_right |= ::ftxui::bgcolor(point_color);
-                if (separator_cross_bottom_right) separator_cross_bottom_right |= ::ftxui::bgcolor(point_color);
-                if (separator_cross_top_left) separator_cross_top_left |= ::ftxui::bgcolor(point_color);
-                if (separator_cross_bottom_left) separator_cross_bottom_left |= ::ftxui::bgcolor(point_color);
+                if (ele) *ele |= ::ftxui::bgcolor(point_color);
+                if (separator_right) *separator_right |= ::ftxui::bgcolor(point_color);
+                if (separator_left) *separator_left |= ::ftxui::bgcolor(point_color);
+                if (separator_top) *separator_top |= ::ftxui::bgcolor(point_color);
+                if (separator_bottom) *separator_bottom |= ::ftxui::bgcolor(point_color);
+                if (separator_cross_top_right) *separator_cross_top_right |= ::ftxui::bgcolor(point_color);
+                if (separator_cross_bottom_right) *separator_cross_bottom_right |= ::ftxui::bgcolor(point_color);
+                if (separator_cross_top_left) *separator_cross_top_left |= ::ftxui::bgcolor(point_color);
+                if (separator_cross_bottom_left) *separator_cross_bottom_left |= ::ftxui::bgcolor(point_color);
             };
         };
 
