@@ -54,10 +54,9 @@ namespace tui {
             float offset_y = static_cast<float>(row_id)/rows;
             options.focus_x = &offset_x;
             options.focus_y = &offset_y;
-            options.element_style = tui::component::MatrixFrameOptionsCommonElementStyle::empty_style() |
-                                    tui::component::MatrixFrameOptionsCommonElementStyle::mark_point(row_id, col_id, Color::GrayDark);
-            options.label_marks.push_back({"col", col_id, Color::Red1});
-            options.label_marks.push_back({"row", row_id, Color::Red1});
+            options.point_style_map[{col_id, row_id}] = tui::component::MatrixFrameOptionsCommonElementStyle::mark_point(row_id, col_id, Color::GrayDark);
+            options.col_label_style_map[col_id] = {col_id, Color::Red1};
+            options.row_label_style_map[row_id] = {row_id, Color::Red1};
             Component main_renderer =  ::tui::component::MatrixFrame(ptr, rows, cols, options);
             auto screen = Screen::Create(Dimension::Fixed(screen_size_x), Dimension::Fixed(screen_size_y));
             Render(screen, main_renderer -> Render());

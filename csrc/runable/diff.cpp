@@ -3,6 +3,12 @@
 #include <cuda_fp16.h>
 #endif
 #include <limits>
+#include <vector>
+#include <thread>
+#include <mutex>
+#include <cmath>
+#include <limits>
+#include <algorithm>
 
 namespace tui {
     namespace runable {
@@ -19,32 +25,79 @@ namespace tui {
             });
             ScreenInteractive::TerminalOutput().Loop(main_renderer);
         }
+
+        template <typename T>
+        void diff_partial(T* ptr_a, T* ptr_b, int start, int end, int cols, double accuracy, 
+                        double& avg_diff, double& max_diff, 
+                        std::vector<std::pair<int, int>>& err_indices, std::mutex& mtx) {
+            double local_avg_diff = 0;
+            double local_max_diff = std::numeric_limits<double>::lowest();
+            std::vector<std::pair<int, int>> local_err_indices;
+
+            for (int i = start; i < end; ++i) {
+                double diff = std::abs(static_cast<double>(ptr_a[i] - ptr_b[i]));
+                if (diff >= accuracy) {
+                    local_err_indices.push_back({i / cols, i % cols});
+                }
+                local_max_diff = std::max(local_max_diff, diff);
+                local_avg_diff += diff;
+            }
+
+            std::lock_guard<std::mutex> lock(mtx);
+            avg_diff += local_avg_diff;
+            max_diff = std::max(max_diff, local_max_diff);
+            err_indices.insert(err_indices.end(), local_err_indices.begin(), local_err_indices.end());
+        }
         
         template <typename T>
         // a,b is default row-major
         void diff_(T *ptr_a, T *ptr_b, int rows, int cols, double accuracy = 1e-3) {
             // Processing a large amount of data on the CPU can be very time-consuming
             printf("start computing ...\n");
+
             double avg_diff = 0;
             double max_diff = std::numeric_limits<double>::lowest();
             std::vector<std::pair<int,int>> err_indices;
-            for (int i = 0; i < rows * cols; ++i)
             {
-                double diff = std::abs(static_cast<double>(ptr_a[i] - ptr_b[i]));
-                if (diff >= accuracy) {
-                    err_indices.push_back({i / cols, i % cols}); // row, col 
+                // parallize this for loop
+                // for (int i = 0; i < rows * cols; ++i)
+                // {
+                //     double diff = std::abs(static_cast<double>(ptr_a[i] - ptr_b[i]));
+                //     if (diff >= accuracy) {
+                //         err_indices.push_back({i / cols, i % cols}); // row, col 
+                //     }
+                //     max_diff = std::max(max_diff, diff);
+                //     avg_diff += diff;
+                // }
+                int total_elements = rows * cols;
+                int num_threads = std::thread::hardware_concurrency();
+                int chunk_size = total_elements / num_threads;
+
+                std::vector<std::thread> threads;
+                std::mutex mtx;
+
+                for (int t = 0; t < num_threads; ++t) {
+                    int start = t * chunk_size;
+                    int end = (t == num_threads - 1) ? total_elements : start + chunk_size;
+                    threads.emplace_back(diff_partial<T>, ptr_a, ptr_b, start, end, cols, accuracy, 
+                                        std::ref(avg_diff), std::ref(max_diff), std::ref(err_indices), std::ref(mtx));
                 }
-                max_diff = std::max(max_diff, diff);
-                avg_diff += diff;
+                for (auto& thread : threads) {
+                    thread.join();
+                }
             }
+
             if (err_indices.size() == 0) {
                 avg_diff  = 0;
             } else {
                 avg_diff /= err_indices.size();
             }
+
+            float err_percent = err_indices.size() / (float)(rows * cols);
+
             Component block1 = Renderer([&] {
                 return gridbox({
-                    {text("Error nums") | bold | hcenter | color(Color::Gold3Bis), text(" : ") | bold, text(std::to_string(err_indices.size())) | bold | color(Color::Red1)},
+                    {text("Error nums") | bold | hcenter | color(Color::Gold3Bis), text(" : ") | bold, text(std::to_string(err_indices.size()) + utils::str_format(" (%.2f%%)", err_percent * 100)) | bold | color(Color::Red1)},
                     {text("Max diff") | bold | hcenter | color(Color::Gold3Bis), text(" : ") | bold, text(std::to_string(max_diff)) | bold | (max_diff > accuracy ? color(Color::Red1) : color(Color::Green1))},
                     {text("Avg diff") | bold | hcenter | color(Color::Gold3Bis), text(" : ") | bold, text(std::to_string(avg_diff)) | bold | (max_diff > accuracy ? color(Color::Red1) : color(Color::Green1))},
                 });
@@ -60,9 +113,13 @@ namespace tui {
 
             MatrixFrameOptions<T> matrixAB_options;
             for (auto [row, col] : err_indices) {
-                matrixAB_options.label_marks.push_back({"row", row, Color::Red1});
-                matrixAB_options.label_marks.push_back({"col", col, Color::Red1});
-                matrixAB_options.element_style_stack.push_back(MatrixFrameOptionsCommonElementStyle::mark_point(row, col, Color::Red1));
+                matrixAB_options.row_label_style_map[row] = {row, Color::Red1};
+                matrixAB_options.col_label_style_map[col] = {col, Color::Red1};
+                if (err_percent > 0.3) {
+                    matrixAB_options.point_style_map[{col, row}] = MatrixFrameOptionsCommonElementStyle::mark_point(row, col, Color::Red1);
+                } else {
+                    matrixAB_options.point_style_map[{col, row}] = MatrixFrameOptionsCommonElementStyle::mark_point_trace(matrixAB_options.point_style_map, row, col, rows, cols);
+                }
             }
             Component matrixA = ::tui::component::MatrixFrame(ptr_a, rows, cols, matrixAB_options);
             auto matrixA_r = Renderer(matrixA, [&] {

@@ -21,6 +21,7 @@
 #include "ftxui/screen/color.hpp"  // for Color, Color::BlueLight, Color::RedLight, Color::Black, Color::Blue, Color::Cyan, Color::CyanLight, Color::GrayDark, Color::GrayLight, Color::Green, Color::GreenLight, Color::Magenta, Color::MagentaLight, Color::Red, Color::White, Color::Yellow, Color::YellowLight, Color::Default, Color::Palette256, ftxui
 #include "ftxui/screen/color_info.hpp"  // for ColorInfo
 #include "ftxui/screen/terminal.hpp"    // for Size, Dimensions
+#include "utils.hpp"
 #ifdef __CUDA__
 #include <cuda_fp16.h>
 #endif
@@ -147,32 +148,30 @@ namespace tui {
 
         struct MatrixFrameOptionsCommonElementStyle
         {
-            using ElementStyle = ::std::function<void(::ftxui::Element &ele, int x, int y, ::ftxui::Element &separator_right, ::ftxui::Element &separator_bottom, ::ftxui::Element &separator_cross)>;
+            using ElementStyle = ::std::function<void(int x, int y, ::std::vector<Elements> &elements)>;
             // using Decorator = ::std::function<ElementStyle(ElementStyle)>;
 
             static ::std::function<ElementStyle()> empty_style;
             static ::std::function<ElementStyle(int row_id, Color color)> hight_light_row;
             static ::std::function<ElementStyle(int col_id, Color color)> hight_light_col;
-            static ::std::function<ElementStyle(int row_id, int col_id, Color trace_color, Color point_color)> mark_point_trace;
+            static ::std::function<ElementStyle(utils::pair_map<ElementStyle> &point_style_map, int row_id, int col_id, int rows, int cols)> mark_point_trace;
             static ::std::function<ElementStyle(int row_id, int col_id, Color color)> mark_point;
             static ::std::function<ElementStyle(int left_up_row_id, int left_up_col_id, int right_bottom_row_id, int right_bottom_col_id, Color color)> mark_sub_matrix;
 
             // friend MatrixFrameOptionsCommonElementStyle::ElementStyle operator|(MatrixFrameOptionsCommonElementStyle::ElementStyle lhs, MatrixFrameOptionsCommonElementStyle::ElementStyle rhs);
         };
 
-        struct MatrixFrameOptionsLabelMark {
-            enum class LabelType {
-                Row,
-                Col
-            };
-            LabelType type;
-            int id;
-            Color color = Color::Gold3Bis;
-            Color bgcolor = Color::Grey3;
-            MatrixFrameOptionsLabelMark(LabelType type, int id, Color color = Color::Gold3Bis, Color bgcolor = Color::Grey3)
-            : type(type), id(id), color(color), bgcolor(bgcolor) {};
-            MatrixFrameOptionsLabelMark(std::string type, int id, Color color = Color::Gold3Bis, Color bgcolor = Color::Grey3)
-            : type(type == "row" ? LabelType::Row : LabelType::Col), id(id), color(color), bgcolor(bgcolor) {};
+        struct MatrixFrameOptionsLabelStyle {
+            int row_or_col_id;
+            Color color;
+            Color bgcolor;
+            Color separator_color;
+            Color separator_bgcolor;
+            MatrixFrameOptionsLabelStyle()
+            : row_or_col_id(0), color(Color::Gold3Bis), bgcolor(Color::Grey3),
+            separator_color(Color::Gold3), separator_bgcolor(Color::Grey3) {};
+            MatrixFrameOptionsLabelStyle(int row_or_col_id, Color color = Color::Gold3Bis, Color bgcolor = Color::Grey3, Color separator_color = Color::Gold3, Color separator_bgcolor = Color::Grey3)
+            : row_or_col_id(row_or_col_id), color(color), bgcolor(bgcolor), separator_color(separator_color), separator_bgcolor(separator_bgcolor) {};
         };
 
         template <typename T>
@@ -180,19 +179,15 @@ namespace tui {
             T* ptr;
             int rows;
             int cols;
-            // │ele│
-            // ┼───┼ , separator_right: |, separator_bottom: ───, separator_cross: ┼
-            // usage: options.element_style =  MatrixFrameOptionsCommonElementStyle::empty_style() | MatrixFrameOptionsCommonElementStyle::mark_point_trace(10, 20, Color::Blue1, Color::Red1);
-            MatrixFrameOptionsCommonElementStyle::ElementStyle element_style = nullptr;
-            // due to the element_style is a function, so we need to store the element_style in a stack limited to the max depth of the recursion
-            ::std::vector<MatrixFrameOptionsCommonElementStyle::ElementStyle> element_style_stack;
-            ::std::vector<MatrixFrameOptionsLabelMark> label_marks;
+            utils::pair_map<MatrixFrameOptionsCommonElementStyle::ElementStyle> point_style_map;
+            utils::label_map<MatrixFrameOptionsLabelStyle> row_label_style_map;
+            utils::label_map<MatrixFrameOptionsLabelStyle> col_label_style_map;
             Ref<float> focus_x = new float(0.5f);
             Ref<float> focus_y = new float(0.5f); 
             int text_width = 5;
             MatrixFrameOptions() = default;
             MatrixFrameOptions(const MatrixFrameOptions& other)
-            : ptr(other.ptr), rows(other.rows), cols(other.cols), element_style(other.element_style), focus_x(other.focus_x), focus_y(other.focus_y), label_marks(std::move(other.label_marks)), element_style_stack(std::move(other.element_style_stack)) {};
+            : ptr(other.ptr), rows(other.rows), cols(other.cols), point_style_map(std::move(other.point_style_map)), focus_x(other.focus_x), focus_y(other.focus_y), col_label_style_map(std::move(other.col_label_style_map)), row_label_style_map(std::move(other.row_label_style_map)) {};
         };
 
         template <typename T>

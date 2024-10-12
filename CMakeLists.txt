@@ -9,6 +9,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 message(STATUS "CMAKE_MSVC_RUNTIME_LIBRARY: ${CMAKE_MSVC_RUNTIME_LIBRARY}")
 find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
+# find_package(OpenMP)
+
 # ftxui
 add_subdirectory(3rd/ftxui EXCLUDE_FROM_ALL)
 # pybind11
@@ -21,7 +23,8 @@ file(GLOB src_runables CONFIGURE_DEPENDS "csrc/runable/*.cpp")
 add_library(tui_static STATIC  ${src_components} ${src_runables})
 target_link_libraries(tui_static PRIVATE ftxui::screen
                                     PRIVATE ftxui::dom
-                                    PRIVATE ftxui::component)
+                                    PRIVATE ftxui::component
+                                    )
 target_include_directories(tui_static PUBLIC "csrc/include")
 include(tools/merge_static_libs.cmake)
 # protable static lib (merged all in one) tui_toolsets 
