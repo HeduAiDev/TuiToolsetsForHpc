@@ -1,11 +1,4 @@
 Simple Toolsets for HPC development. Depends on FTXUI, pybind11.
-## Features
-- support for C++ and Python
-- support for very large matrix over 10000 * 10000
-
-
-
-## Preview
 
 <table>
   <tr>
@@ -20,6 +13,32 @@ Simple Toolsets for HPC development. Depends on FTXUI, pybind11.
     </td>
   </tr>
 </table>
+
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/c++-%2300599C.svg?style=flat&logo=c%2B%2B&logoColor=white"></img></a>
+  <a href="#"><img src="https://img.shields.io/badge/python-%2300599C.svg?style=flat&logo=Python&logoColor=white"></img></a>
+  <a href="https://opensource.org/license/mit"><img src="https://img.shields.io/github/license/HeduAiDev/TuiToolsetsForHpc?color=black"></img></a>
+  <a href="#"><img src="https://img.shields.io/github/stars/HeduAiDev/TuiToolsetsForHpc"></img></a>
+  <a href="#"><img src="https://img.shields.io/github/forks/HeduAiDev/TuiToolsetsForHpc"></img></a>
+  <a href="#"><img src="https://img.shields.io/github/repo-size/HeduAiDev/TuiToolsetsForHpc"></img></a>
+  <a href="https://github.com/HeduAiDev/TuiToolsetsForHpc/graphs/contributors"><img src="https://img.shields.io/github/contributors/HeduAiDev/TuiToolsetsForHpc?color=blue"></img></a>
+  <a href="https://github.com/HeduAiDev/TuiToolsetsForHpc/issues"><img src="https://img.shields.io/github/issues/HeduAiDev/TuiToolsetsForHpc"></img></a>
+<br/>
+  <a href="https://github.com/HeduAiDev/TuiToolsetsForHpc/issues/new">Report a Bug</a> ·
+  <a href="https://github.com/HeduAiDev/TuiToolsetsForHpc/issues/new">Request a Feature</a> ·
+  <a href="https://github.com/HeduAiDev/TuiToolsetsForHpc/fork">Fork the Repo</a> ·
+  <a href="https://github.com/HeduAiDev/TuiToolsetsForHpc/compare">Submit a Pull Request</a>
+</br>
+</p>
+
+
+## Features
+- support C++ and Python
+- support very large matrix (over 10000 * 10000)
+
+
+More features is comming soon! welcome to <a href="https://github.com/HeduAiDev/TuiToolsetsForHpc/issues/new">request a feature</a>
+
 
 ## install
 for python
@@ -51,7 +70,8 @@ cmake --install build --config Release --component CPPInterface --prefix <your_p
 
 
 
-Python
+**Python**
+
 ~~~shell
 >>> import tui_toolsets as tui
 >>> a = [[1,2,3,4]] * 2
@@ -101,11 +121,28 @@ Python
 
 ~~~
 
-C++
+**C++**
+
+1. add submodule
+
+~~~shell
+git submodule add https://github.com/HeduAiDev/TuiToolsetsForHpc 3rd/TuiToolsetsForHpc
+git submodule update --init --recursive
+~~~
+2. config cmakeLists.txt
+~~~CMake
+cmake_minimum_required(VERSION 3.18)
+project(Test LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_subdirectory(3rd/TuiToolsets)
+add_executable(test src/main.cpp)
+target_link_libraries(test PRIVATE tui_toolsets)
+~~~
+3. use in cpp file `src/main.cpp`
 ~~~cpp
-#include <stdio.h>
-#include "include/tui_tool_sets_runable.hpp"
-// #pragma comment(lib, "./lib/tui_tool_sets.lib")
+#include <iostream>
+#include "tui_tool_sets_runable.hpp"
 
 int main() {
     int rows = 50;
@@ -115,6 +152,7 @@ int main() {
     a[rows + cols] = -1.f;
     tui::runable::print_matrix(a, rows, cols);
     // tui::runable::diff(a, b, rows, cols);
+    // free your memory ...
     return 0;
 }
 ~~~

@@ -8,15 +8,18 @@ function(merge_static_libs outlib)
     file(WRITE ${dummyfile} "const char* dummy = \"${dummyfile}\";")
 
     add_library(${outlib} STATIC ${dummyfile})
-
+    set(COMBINED_INCLUDE_DIRS)
     # Type check
     foreach(lib ${libs})
+        get_target_property(INCLUDE_DIRS ${lib} INCLUDE_DIRECTORIES)
+        list(APPEND COMBINED_INCLUDE_DIRS ${INCLUDE_DIRS})
+        list(REMOVE_DUPLICATES COMBINED_INCLUDE_DIRS)
         get_target_property(libtype ${lib} TYPE)
         if(NOT libtype STREQUAL "STATIC_LIBRARY")
             message(FATAL_ERROR "Merge_static_libs can only process static libraries\n\tlibraries: ${lib}\n\tlibtype ${libtype}")
         endif()
     endforeach()
-
+    target_include_directories(${outlib} PUBLIC ${COMBINED_INCLUDE_DIRS})
     if(MSVC)
         if(CMAKE_LIBTOOL)
             set(BUNDLE_TOOL ${CMAKE_LIBTOOL})
