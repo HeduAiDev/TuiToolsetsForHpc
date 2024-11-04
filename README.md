@@ -53,7 +53,6 @@ git clone  --recursive git@github.com:HeduAiDev/TuiToolsetsForHpc.git
 cd TuiToolsetsForHpc
 cmake -S . -B build
 cmake --build build --config Release -j8
-cmake --install build --config Release --component CPPInterface --prefix <your_prefix>
 ~~~
 
 ## usage
@@ -135,7 +134,7 @@ cmake_minimum_required(VERSION 3.18)
 project(Test LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_subdirectory(3rd/TuiToolsets)
+add_subdirectory(3rd/TuiToolsetsForHpc)
 add_executable(test src/main.cpp)
 target_link_libraries(test PRIVATE tui_toolsets)
 ~~~
